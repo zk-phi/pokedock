@@ -1,32 +1,105 @@
 import { useState } from 'preact/hooks'
-import preactLogo from './assets/preact.svg'
+import { PokemonEdit } from "./components/PokemonEdit";
+import { SpeedList } from "./components/SpeedList";
+import { PickupEdit } from "./components/PickupEdit";
+import {
+  storageEntries,
+  loadFromStorage,
+  saveToStorage,
+  deleteStorageItem,
+} from "./store/localstorage";
+import { optimizePokemon } from "./utils/optimizer";
+import { computeDefaultEffectiveness } from "./utils/effectiveness";
 import './app.css'
 
-export function App() {
-  const [count, setCount] = useState(0)
+loadFromStorage();
 
+const placeholder: Pokemon = optimizePokemon({
+  name: "ミミッキュ",
+  tag: "珠陽気AS",
+  attributes: ["ゴースト", "フェアリー"],
+  teraAttribute: "ゴースト",
+  effectiveness: computeDefaultEffectiveness(["ゴースト", "フェアリー"]),
+  teraEffectiveness: computeDefaultEffectiveness(["ゴースト"]),
+  baseStats: { h: 55, a: 90, b: 80, c: 50, d: 105, s: 96 },
+  iv: { h: 31, a: 31, b: 31, c: 31, d: 31, s: 31 },
+  ev: { h: 4, a: 252, b: 0, c: 0, d: 0, s: 252 },
+  n: { a: 1, b: 1, c: 0.9, d: 1, s: 1.1 },
+  bonus: { h: 1, a: 1.3, b: 1, c: 1.3, d: 1, s: 1 },
+  optimizationStrategy: "hbd",
+  bdBalance: 0.5,
+});
+
+const PokemonList = ({ onSelectPokemon }: {
+  onSelectPokemon: (pokemon: Pokemon) => void,
+}) => {
+  const entries = storageEntries.value;
+  const timestamps = entries.map((entry) => (new Date(entry.timestamp)).toLocaleString());
+  return <>
+    <ul>
+      { entries.map((entry, i) => (
+        <li>
+          <button onClick={ () => onSelectPokemon(entries[i].pokemon) }>
+            { entry.pokemon.name } { entry.pokemon.tag } (ver. { timestamps[i] })
+          </button>
+          <button onClick={ () => deleteStorageItem(i) }>
+            削除
+          </button>
+        </li>
+      )) }
+    </ul>
+    <button onClick={ () => onSelectPokemon(placeholder) }>新規育成</button>
+  </>;
+};
+
+const PokemonDetails = ({ pokemon, onUpdate, onSave, onExit }: {
+  pokemon: Pokemon,
+  onUpdate: (pokemon: Pokemon) => void,
+  onSave: (pokemon: Pokemon) => void,
+  onExit: () => void,
+}) => {
+  const onSaveAndExit = () => {
+    onSave(pokemon);
+    onExit();
+  };
+  return <>
+    <PokemonEdit pokemon={ pokemon } onUpdate={ onUpdate } />
+    <button onClick={ onSaveAndExit }>保存して一覧へ</button>
+    { storageEntries.value.length > 0 && <button onClick={ onExit }>保存せず一覧へ</button> }
+  </>;
+};
+
+export function App() {
+  const [pokemon, setPokemon] = useState<Pokemon | null>(
+    storageEntries.value.length > 0 ? null : placeholder
+  );
+  const [rightColumn, setRightColumn] = useState("speed");
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" class="logo" alt="Vite logo" />
-        </a>
-        <a href="https://preactjs.com" target="_blank">
-          <img src={preactLogo} class="logo preact" alt="Preact logo" />
-        </a>
+    <div style={{ display: "flex" }}>
+      <div className="column" style={{ flexGrow: 1, borderRight: "1px solid" }}>
+        <h2>ポケモン育成支援</h2>
+        { pokemon ? (
+          <PokemonDetails
+              pokemon={ pokemon }
+              onUpdate={ setPokemon }
+              onSave={ saveToStorage }
+              onExit={ () => setPokemon(null) } />
+        ) : (
+          <PokemonList onSelectPokemon={ setPokemon } />
+        ) }
       </div>
-      <h1>Vite + Preact</h1>
-      <div class="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
+      <div className="column" style={{ flexGrow: 0, width: "640px" }}>
         <p>
-          Edit <code>src/app.tsx</code> and save to test HMR
+          <button onClick={ () => setRightColumn("speed") }>素早さランキング</button>
+          <button>耐久ランキング</button>
         </p>
+        { rightColumn === "speed" && (
+          <SpeedList
+              pokemon={ pokemon }
+              onSwitchPage={ setRightColumn } />
+        ) }
+        { rightColumn === "pickup" && <PickupEdit /> }
       </div>
-      <p class="read-the-docs">
-        Click on the Vite and Preact logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  );
 }

@@ -1,7 +1,7 @@
-import { EFFECTIVENESS } from "../constants/effectiveness";
+import { REVERSE_EFFECTIVENESS } from "../constants/effectiveness";
 
 export const computeDefaultEffectiveness = (attributes: Attribute[]): Effectiveness => (
-  attributes.map((attr) => EFFECTIVENESS[attr]).reduce((l, r) => ({
+  attributes.map((attr) => REVERSE_EFFECTIVENESS[attr]).reduce((l, r) => ({
     "ノーマル": l["ノーマル"] * r["ノーマル"],
     "ほのお": l["ほのお"] * r["ほのお"],
     "みず": l["みず"] * r["みず"],

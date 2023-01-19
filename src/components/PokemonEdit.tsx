@@ -6,6 +6,15 @@ import { HexChart } from "./HexChart";
 import { evaluate } from "../utils/evaluator";
 import { optimizePokemon } from "../utils/optimizer";
 
+const color: Record<number, string> = {
+  "0": "#00000030",
+  "0.25": "#ff000060",
+  "0.5": "#ff000030",
+  "1": "transparent",
+  "2": "#0000ff30",
+  "4": "#0000ff60",
+};
+
 const STAT_FIELDS: { index: ValueFieldIndex, label: string }[] = [
   { index: "h", label: "HP" },
   { index: "a", label: "攻撃" },
@@ -18,6 +27,27 @@ const STAT_FIELDS: { index: ValueFieldIndex, label: string }[] = [
 type Props = {
   pokemon: Pokemon,
   onUpdate: (value: Pokemon) => void,
+};
+
+type MoveEditRowProps = {
+  index: number,
+  pokemon: Pokemon,
+  move: Move,
+  onUpdate: (value: Move) => void,
+  onDelete: () => void,
+};
+
+const sampleMove: Move = {
+  name: "たいあたり",
+  attribute: "ノーマル",
+  category: "物理",
+  strength: 40,
+  bonus: {
+    rank: 2,
+    weather: 1,
+    other: 1,
+  },
+  terastal: false,
 };
 
 export const PokemonNameEdit = ({
@@ -46,6 +76,7 @@ export const PokemonNameEdit = ({
           bonus: { h: 1, a: 1, b: 1, c: 1, d: 1, s: 1 },
           optimizationStrategy: "hbd",
           bdBalance: 0.5,
+          moves: [],
         })
       );
     } else {
@@ -68,7 +99,7 @@ export const PokemonNameEdit = ({
   };
 
   const attackType = computedWithBonus.a > computedWithBonus.c ? "a" : "c";
-  const attackTypeLabel = attackType === "a" ? "物理" : "特殊";
+  const attackTypeLabel = attackType === "a" ? "A" : "C";
 
   return <>
     <datalist id="pokemon-names">
@@ -112,23 +143,24 @@ export const PokemonNameEdit = ({
           </td>
         </tr>
         <tr>
-          <td>素早さ</td>
+          <td>素早さ <small>S</small></td>
           <td>{ computedWithBonus.s }</td>
         </tr>
         <tr>
-          <td>物理耐久</td>
+          <td>物理耐久 <small>HB/0.44</small></td>
           <td>{ Math.floor(computedWithBonus.hb / 0.44) }</td>
         </tr>
         <tr>
-          <td>特殊耐久</td>
+          <td>特殊耐久 <small>HD/0.44</small></td>
           <td>{ Math.floor(computedWithBonus.hd / 0.44) }</td>
         </tr>
         <tr>
-          <td>総合耐久</td>
+          <td>総合耐久 <small>HBD/(B+D)/0.22</small></td>
           <td>{ Math.floor(computedWithBonus.evenHBD / 0.44) }</td>
         </tr>
       </table>
-      <small>※ 青三角が正三角形のとき効率的な耐久指数 (H=B+D∧B=D) になります</small>
+      <small>※ 青三角が正三角形のとき効率的な耐久指数 (H=B+D∧B=D) になります</small><br />
+      <small>※ "耐久"は最大乱数を引かれ続けても耐えられる最大火力です</small>
     </p>
   </>;
 };
@@ -137,7 +169,36 @@ export const PokemonTypeEdit = ({
   pokemon,
   onUpdate,
 }: Props) => {
-  const { effectiveness, teraEffectiveness } = pokemon;
+  const { attributes, teraAttribute, effectiveness, teraEffectiveness } = pokemon;
+
+  const onReset = () => {
+    onUpdate({
+      ...pokemon,
+      effectiveness: computeDefaultEffectiveness(attributes),
+      teraEffectiveness: computeDefaultEffectiveness([teraAttribute]),
+    });
+  };
+
+  const onChangeEffectiveness = (attr: Attribute, e: Event) => {
+    const value = Number((e.target as HTMLSelectElement).value);
+    if (!isNaN(value)) {
+      onUpdate({
+        ...pokemon,
+        effectiveness: { ...effectiveness, [attr]: value },
+      });
+    }
+  };
+
+  const onChangeTeraEffectiveness = (attr: Attribute, e: Event) => {
+    const value = Number((e.target as HTMLSelectElement).value);
+    if (!isNaN(value)) {
+      onUpdate({
+        ...pokemon,
+        teraEffectiveness: { ...teraEffectiveness, [attr]: value },
+      });
+    }
+  };
+
   return <>
     <p>
       <table>
@@ -147,13 +208,40 @@ export const PokemonTypeEdit = ({
         </tr>
         <tr>
           <td>通常</td>
-          { ATTRIBUTE_NAMES.map((name) => <td key={ name }>{ effectiveness[name] }</td>) }
+          { ATTRIBUTE_NAMES.map((name) => (
+            <td key={ name } style={{ backgroundColor: color[effectiveness[name]] }}>
+              <select
+                  value={ effectiveness[name] }
+                  onInput={ (e) => onChangeEffectiveness(name, e) }>
+                <option value="4">4</option>
+                <option value="2">2</option>
+                <option value="1">1</option>
+                <option value="0.5">½</option>
+                <option value="0.25">¼</option>
+                <option value="0">0</option>
+              </select>
+            </td>
+          )) }
         </tr>
         <tr>
           <td>テラス</td>
-          { ATTRIBUTE_NAMES.map((name) => <td key={ name }>{ teraEffectiveness[name] }</td>) }
+          { ATTRIBUTE_NAMES.map((name) => (
+            <td key={ name } style={{ backgroundColor: color[teraEffectiveness[name]] }}>
+              <select
+                  value={ teraEffectiveness[name] }
+                  onInput={ (e) => onChangeTeraEffectiveness(name, e) }>
+                <option value="4">4</option>
+                <option value="2">2</option>
+                <option value="1">1</option>
+                <option value="0.5">½</option>
+                <option value="0.25">¼</option>
+                <option value="0">0</option>
+              </select>
+            </td>
+          )) }
         </tr>
       </table>
+      <button onClick={ onReset }>リセット</button>
     </p>
   </>;
 };
@@ -324,15 +412,218 @@ const PokemonStatsEdit = ({
   </>;
 };
 
+export const PokemonMoveEditRow = ({
+  index,
+  pokemon,
+  move,
+  onUpdate,
+  onDelete,
+}: MoveEditRowProps) => {
+  const {
+    attributes,
+    teraAttribute,
+    computedWithBonus: { a, c },
+  } = pokemon;
+
+  const {
+    name,
+    attribute,
+    category,
+    strength,
+    bonus,
+    terastal,
+  } = move;
+
+  const onUpdateName = (e: Event) => {
+    const name = (e.target as HTMLInputElement).value;
+    onUpdate({ ...move, name });
+  };
+
+  const onUpdateAttr = (e: Event) => {
+    const attribute = (e.target as HTMLSelectElement).value as Attribute;
+    onUpdate({ ...move, attribute });
+  };
+
+  const onUpdateCategory = (e: Event) => {
+    const category = (e.target as HTMLSelectElement).value as Category;
+    onUpdate({ ...move, category });
+  };
+
+  const onUpdateStrength = (e: Event) => {
+    const strength = Number((e.target as HTMLInputElement).value);
+    if (!isNaN(strength)) {
+      onUpdate({ ...move, strength });
+    }
+  };
+
+  const onUpdateBonus = (field: "rank" | "weather" | "other") => (e: Event) => {
+    const value = Number((e.target as HTMLInputElement).value);
+    if (!isNaN(value)) {
+      onUpdate({ ...move, bonus: { ...bonus, [field]: value } });
+    }
+  };
+
+  const onUpdateTerastal = (e: Event) => {
+    const terastal = (e.target as HTMLInputElement).checked;
+    onUpdate({ ...move, terastal });
+  };
+
+  const attrBonus = attributes.includes(attribute) ? (
+    terastal && teraAttribute === attribute ? 2 : 1.5
+  ) : (
+    terastal && teraAttribute === attribute ? 1.5 : 1
+  );
+
+  const status = category === "物理" ? a : category === "特殊" ? c : 0;
+  const rankBonus = bonus.rank >= 0 ? (
+    1 + (bonus.rank / 2)
+  ) : (
+    1 / (1 + (bonus.rank / 2))
+  );
+  const totalBonus = attrBonus * rankBonus * bonus.weather * bonus.other;
+  const value = Math.floor(status * strength * totalBonus);
+
+  return (
+    <tr>
+      <td>
+        { index + 1 }
+      </td>
+      <td>
+        <input type="text" value={ name } onInput={ onUpdateName } />
+      </td>
+      <td>
+        <select value={ attribute } onInput={ onUpdateAttr }>
+          { ATTRIBUTE_NAMES.map((name) => <option value={ name }>{ name }</option>) }
+        </select>
+      </td>
+      <td>
+        <select value={ category } onInput={ onUpdateCategory }>
+          <option value="物理">物理</option>
+          <option value="特殊">特殊</option>
+          <option value="変化">変化</option>
+        </select>
+      </td>
+      <td>
+        <input
+            type="number"
+            min="0"
+            max="999"
+            step="1"
+            value={ strength }
+            onInput={ onUpdateStrength } />
+      </td>
+      <td>
+        <select value={ bonus.rank } onInput={ onUpdateBonus("rank") }>
+          { [-6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6].map((n) => (
+            <option value={ n }>{ n }</option>
+          )) }
+        </select>
+      </td>
+      <td>
+        x <select value={ bonus.weather } onInput={ onUpdateBonus("weather") }>
+        <option value="0.5">0.5</option>
+        <option value="1">1</option>
+        <option value="1.5">1.5</option>
+        </select>
+      </td>
+      <td>
+        x <input
+              type="number"
+              min="0.1"
+              max="9.9"
+              step="0.1"
+              value={ bonus.other }
+              onInput={ onUpdateBonus("other") } />
+      </td>
+      <td>
+        <input type="checkbox" checked={ terastal } onInput={ onUpdateTerastal } />
+      </td>
+      <td>
+        { value }
+      </td>
+      <td>
+        <button onClick={ onDelete }>削除</button>
+      </td>
+    </tr>
+  );
+};
+
+export const PokemonMoveEdit = ({
+  pokemon,
+  onUpdate,
+}: Props) => {
+  const onUpdateMove = (ix: number) => (value: Move) => {
+    onUpdate({
+      ...pokemon,
+      moves: (pokemon.moves ?? []).map((move, i) => i === ix ? value : move),
+    });
+  };
+
+  const onAddMove = () => {
+    onUpdate({
+      ...pokemon,
+      moves: [ ...(pokemon.moves ?? []), sampleMove ],
+    });
+  };
+
+  const onDeleteMove = (ix: number) => () => {
+    onUpdate({
+      ...pokemon,
+      moves: (pokemon.moves ?? []).filter((_, i) => i !== ix),
+    });
+  };
+
+  return <>
+    <table>
+      <tr>
+        <td></td>
+        <td>技名</td>
+        <td>タイプ</td>
+        <td>分類</td>
+        <td>威力</td>
+        <td>ランク</td>
+        <td>天候</td>
+        <td>その他補正</td>
+        <td>テラス</td>
+        <td>実質火力</td>
+        <td></td>
+      </tr>
+      { (pokemon.moves ?? []).map((move, ix) => (
+        <PokemonMoveEditRow
+            index={ ix }
+            pokemon={ pokemon }
+            move={ move }
+            onUpdate={ onUpdateMove(ix) }
+            onDelete={ onDeleteMove(ix) } />
+      )) }
+      <tr>
+        <td colSpan={ 12 }>
+          <button onClick={ onAddMove }>+ 追加</button>
+        </td>
+      </tr>
+    </table>
+  </>;
+};
+
 export const PokemonEdit = ({
   pokemon,
   onUpdate,
 }: Props) => {
   return (
     <div>
-      <PokemonNameEdit pokemon={ pokemon } onUpdate={ onUpdate } />
-      <PokemonTypeEdit pokemon={ pokemon } onUpdate={ onUpdate } />
-      <PokemonStatsEdit pokemon={ pokemon } onUpdate={ onUpdate } />
+      <section>
+        <h2>基本スペック</h2>
+        <PokemonNameEdit pokemon={ pokemon } onUpdate={ onUpdate } />
+        <PokemonTypeEdit pokemon={ pokemon } onUpdate={ onUpdate } />
+      </section>
+      <section>
+        <h2>努力値調整</h2>
+        <PokemonStatsEdit pokemon={ pokemon } onUpdate={ onUpdate } />
+      </section>
+      <section>
+        <h2>火力確認</h2>
+        <PokemonMoveEdit pokemon={ pokemon } onUpdate={ onUpdate } />
+      </section>
     </div>
   );
 }

@@ -28,6 +28,42 @@ const placeholder: Pokemon = optimizePokemon({
   bonus: { h: 1, a: 1.3, b: 1, c: 1.3, d: 1, s: 1 },
   optimizationStrategy: "hbd",
   bdBalance: 0.5,
+  moves: [{
+    name: "じゃれつく",
+    attribute: "フェアリー",
+    category: "物理",
+    strength: 90,
+    bonus: { rank: 0, weather: 1, other: 1 },
+    terastal: false,
+  }, {
+    name: "ドレインパンチ",
+    attribute: "かくとう",
+    category: "物理",
+    strength: 75,
+    bonus: { rank: 0, weather: 1, other: 1 },
+    terastal: false,
+  }, {
+    name: "かげうち",
+    attribute: "ゴースト",
+    category: "物理",
+    strength: 40,
+    bonus: { rank: 0, weather: 1, other: 1 },
+    terastal: false,
+  }, {
+    name: "シャドークロー",
+    attribute: "ゴースト",
+    category: "物理",
+    strength: 70,
+    bonus: { rank: 0, weather: 1, other: 1 },
+    terastal: false,
+  }, {
+    name: "つるぎのまい",
+    attribute: "ノーマル",
+    category: "変化",
+    strength: 0,
+    bonus: { rank: 0, weather: 1, other: 1 },
+    terastal: false,
+  }],
 });
 
 const PokemonList = ({ onSelectPokemon }: {
@@ -77,7 +113,6 @@ export function App() {
   return (
     <div style={{ display: "flex" }}>
       <div className="column" style={{ flexGrow: 1, borderRight: "1px solid" }}>
-        <h2>ポケモン育成支援</h2>
         { pokemon ? (
           <PokemonDetails
               pokemon={ pokemon }

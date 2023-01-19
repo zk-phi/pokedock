@@ -27,6 +27,7 @@ const SPEEDS: Pokemon[] = POKEMON_NAMES.flatMap((name) => {
     bonus: { h: 1, a: 1, b: 1, c: 1, d: 1, s: 1 } as Values,
     optimizationStrategy: "" as OptimizationStrategy,
     bdBalance: 0.5,
+    moves: [],
   };
   return [
     optimizePokemon({
@@ -34,6 +35,10 @@ const SPEEDS: Pokemon[] = POKEMON_NAMES.flatMap((name) => {
       tag: "最遅",
       iv: { h: 31, a: 31, b: 31, c: 31, d: 31, s: 0   },
       n:  {        a: 1,  b: 1,  c: 1,  d: 1,  s: 0.9 },
+    }),
+    optimizePokemon({
+      ...baseSettings,
+      tag: "無振り",
     }),
     optimizePokemon({
       ...baseSettings,
@@ -53,7 +58,15 @@ const Cell = ({ pokemon, value }: {
   pokemon?: Pokemon | null,
   value: number,
 }) => {
-  const color = pokemon && pokemon.computedWithBonus.s > value ? "#ff000030" : "inherit";
+  const color = !pokemon ? (
+    "inherit"
+  ) : pokemon.computedWithBonus.s > value ? (
+    "#ff000030"
+  ) : pokemon.computedWithBonus.s < value ? (
+    "#0000ff30"
+  ) : (
+    "#00ff0030"
+  );
   return (
     <td style={{ background: color }}>
       { value }

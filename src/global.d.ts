@@ -43,6 +43,8 @@ type Effectiveness = {
   "フェアリー": number,
 };
 
+type Category = "物理" | "特殊" | "変化";
+
 type Values = {
   h: number,
   a: number,
@@ -60,6 +62,19 @@ type NValues = {
   s: NValue,
 };
 
+type Move = {
+  name: string,
+  attribute: Attribute,
+  category: Category,
+  strength: number,
+  bonus: {
+    rank: number,
+    weather: number,
+    other: number,
+  },
+  terastal: boolean,
+};
+
 type PokemonSettings = {
   name: string,
   tag: string,
@@ -74,6 +89,7 @@ type PokemonSettings = {
   bonus: Values,
   optimizationStrategy: OptimizationStrategy,
   bdBalance: number,
+  moves: Move[],
 };
 
 type OptimizedPokemonSettings = PokemonSettings & {

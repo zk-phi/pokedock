@@ -7,7 +7,7 @@ import { evaluate } from "../utils/evaluator";
 import { optimizePokemon } from "../utils/optimizer";
 
 const color: Record<number, string> = {
-  "0": "#00000030",
+  "0": "#00000060",
   "0.25": "#ff000060",
   "0.5": "#ff000030",
   "1": "transparent",

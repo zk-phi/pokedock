@@ -89,7 +89,7 @@ export const SpeedList = ({ pokemon, onSwitchPage }: {
   return <>
     <h2>素早さランキング</h2>
     { pokemon && (
-      <p>{ pokemon.name }に抜かれているポケモンは赤で表示されます。</p>
+      <p>{ pokemon.name }が抜かれているポケモンは青で表示されます。</p>
     ) }
     <p>スカーフや竜舞を積んだ後の素早さは「＋１」を参照してください。</p>
     <p>

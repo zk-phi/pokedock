@@ -31,7 +31,6 @@ type Props = {
 };
 
 type MoveEditRowProps = {
-  index: number,
   pokemon: Pokemon,
   move: Move,
   onUpdate: (value: Move) => void,
@@ -414,7 +413,6 @@ const PokemonStatsEdit = ({
 };
 
 export const PokemonMoveEditRow = ({
-  index,
   pokemon,
   move,
   onUpdate,
@@ -506,9 +504,6 @@ export const PokemonMoveEditRow = ({
     </datalist>
     <tr>
       <td>
-        { index + 1 }
-      </td>
-      <td>
         <input list="move-names" value={ name } onInput={ onUpdateName } />
       </td>
       <td>
@@ -597,7 +592,6 @@ export const PokemonMoveEdit = ({
   return <>
     <table>
       <tr>
-        <td></td>
         <td>技名</td>
         <td>タイプ</td>
         <td>分類</td>
@@ -611,7 +605,6 @@ export const PokemonMoveEdit = ({
       </tr>
       { (pokemon.moves ?? []).map((move, ix) => (
         <PokemonMoveEditRow
-            index={ ix }
             pokemon={ pokemon }
             move={ move }
             onUpdate={ onUpdateMove(ix) }

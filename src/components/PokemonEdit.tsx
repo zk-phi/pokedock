@@ -372,7 +372,7 @@ const PokemonStatsEdit = ({
                 type="number"
                 value={ bonus[field.index] }
                 min="0"
-                max="2"
+                max="9.9"
                 step="0.1"
                 onInput={ (e) => onInputStat(e, "bonus", field.index) } />
           </td>
@@ -478,7 +478,7 @@ export const PokemonMoveEditRow = ({
   const rankBonus = bonus.rank >= 0 ? (
     1 + (bonus.rank / 2)
   ) : (
-    1 / (1 + (bonus.rank / 2))
+    1 / (1 - bonus.rank / 2)
   );
   const totalBonus = attrBonus * rankBonus * bonus.weather * bonus.other;
   const value = Math.floor(status * strength * totalBonus);
@@ -585,7 +585,7 @@ export const PokemonMoveEdit = ({
         <td>天候</td>
         <td>その他補正</td>
         <td>テラス</td>
-        <td>実質火力</td>
+        <td>参考火力</td>
         <td></td>
       </tr>
       { (pokemon.moves ?? []).map((move, ix) => (

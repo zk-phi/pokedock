@@ -1,4 +1,5 @@
 import { useState } from "preact/hooks";
+import { computed } from "@preact/signals";
 import { POKEMONS, POKEMON_NAMES } from "../constants/pokemons";
 import { computeDefaultEffectiveness } from "../utils/effectiveness";
 import { optimizePokemon } from "../utils/optimizer";
@@ -6,53 +7,60 @@ import { isPickedUp } from "../store/localstorage";
 
 type FilterFn = (pokemon: Pokemon) => boolean;
 
-const FILTER_NAMES = ["ピックアップ", "すべて"];
+const FILTER_NAMES = [
+  "すべて",
+];
 
 const FILTERS: Record<string, FilterFn> = {
-  "ピックアップ": (pokemon: Pokemon) => !!isPickedUp.value[pokemon.name],
   "すべて": (pokemon: Pokemon) => true,
 };
 
-const SPEEDS: Pokemon[] = POKEMON_NAMES.flatMap((name) => {
-  const baseSettings = {
-    name,
-    attributes: POKEMONS[name].types,
-    teraAttribute: POKEMONS[name].types[0],
-    effectiveness: computeDefaultEffectiveness(POKEMONS[name].types),
-    teraEffectiveness: computeDefaultEffectiveness([POKEMONS[name].types[0]]),
-    baseStats: POKEMONS[name].stats,
-    iv: { h: 31, a: 31, b: 31, c: 31, d: 31, s: 31 } as Values,
-    ev: { h: 0, a: 0, b: 0, c: 0, d: 0, s: 0 } as Values,
-    n: { a: 1, b: 1, c: 1, d: 1, s: 1 } as NValues,
-    bonus: { h: 1, a: 1, b: 1, c: 1, d: 1, s: 1 } as Values,
-    optimizationStrategy: "" as OptimizationStrategy,
-    bdBalance: 0.5,
-    moves: [],
-  };
-  return [
-    optimizePokemon({
-      ...baseSettings,
-      tag: "最遅",
-      iv: { h: 31, a: 31, b: 31, c: 31, d: 31, s: 0   },
-      n:  {        a: 1,  b: 1,  c: 1,  d: 1,  s: 0.9 },
-    }),
-    optimizePokemon({
-      ...baseSettings,
-      tag: "無振り",
-    }),
-    optimizePokemon({
-      ...baseSettings,
-      tag: "準速",
-      ev: { h: 0, a: 0, b: 0, c: 0, d: 0, s: 252 },
-    }),
-    optimizePokemon({
-      ...baseSettings,
-      tag: "最速",
-      ev: { h: 0, a: 0, b: 0, c: 0, d: 0, s: 252 },
-      n:  {       a: 1, b: 1, c: 1, d: 1, s: 1.1 },
-    }),
-  ];
-}).sort((a, b) => b.computedWithBonus.s - a.computedWithBonus.s);
+const SPEEDS = computed(() => (
+  POKEMON_NAMES.filter((name) => (
+    isPickedUp.value[name]
+  )).flatMap((name) => {
+    const baseSettings = {
+      name,
+      attributes: POKEMONS[name].types,
+      teraAttribute: POKEMONS[name].types[0],
+      effectiveness: computeDefaultEffectiveness(POKEMONS[name].types),
+      teraEffectiveness: computeDefaultEffectiveness([POKEMONS[name].types[0]]),
+      baseStats: POKEMONS[name].stats,
+      iv: { h: 31, a: 31, b: 31, c: 31, d: 31, s: 31 } as Values,
+      ev: { h: 0, a: 0, b: 0, c: 0, d: 0, s: 0 } as Values,
+      n: { a: 1, b: 1, c: 1, d: 1, s: 1 } as NValues,
+      bonus: { h: 1, a: 1, b: 1, c: 1, d: 1, s: 1 } as Values,
+      optimizationStrategy: "" as OptimizationStrategy,
+      bdBalance: 0.5,
+      moves: [],
+    };
+    return [
+      optimizePokemon({
+        ...baseSettings,
+        tag: "最遅",
+        iv: { h: 31, a: 31, b: 31, c: 31, d: 31, s: 0   },
+        n:  {        a: 1,  b: 1,  c: 1,  d: 1,  s: 0.9 },
+      }),
+      optimizePokemon({
+        ...baseSettings,
+        tag: "無振り",
+      }),
+      optimizePokemon({
+        ...baseSettings,
+        tag: "準速",
+        ev: { h: 0, a: 0, b: 0, c: 0, d: 0, s: 252 },
+      }),
+      optimizePokemon({
+        ...baseSettings,
+        tag: "最速",
+        ev: { h: 0, a: 0, b: 0, c: 0, d: 0, s: 252 },
+        n:  {       a: 1, b: 1, c: 1, d: 1, s: 1.1 },
+      }),
+    ];
+  }).sort((a, b) => (
+    b.computedWithBonus.s - a.computedWithBonus.s
+  ))
+));
 
 const Cell = ({ pokemon, value }: {
   pokemon?: Pokemon | null,
@@ -74,12 +82,11 @@ const Cell = ({ pokemon, value }: {
   );
 };
 
-export const SpeedList = ({ pokemon, onSwitchPage }: {
+export const SpeedList = ({ pokemon }: {
   pokemon?: Pokemon | null,
-  onSwitchPage: (page: string) => void,
 }) => {
   const [filter, setFilter] = useState(FILTER_NAMES[0]);
-  const list = SPEEDS.filter(FILTERS[filter]);
+  const list = SPEEDS.value.filter(FILTERS[filter]);
 
   const onSelectFilter = (e: Event) => {
     const value = (e.target as HTMLSelectElement).value;
@@ -97,7 +104,6 @@ export const SpeedList = ({ pokemon, onSwitchPage }: {
       <select value={ filter } onInput={ onSelectFilter }>
         { FILTER_NAMES.map((name) => <option value={ name }>{ name }</option>) }
       </select>
-      <button onClick={ () => onSwitchPage("pickup") }>ピックアップ管理</button>
     </p>
     <table>
       <tr>

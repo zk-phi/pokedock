@@ -1,6 +1,7 @@
 import { useState } from 'preact/hooks'
 import { PokemonEdit } from "./components/PokemonEdit";
 import { SpeedList } from "./components/SpeedList";
+import { RobustnessList } from "./components/RobustnessList";
 import { PickupEdit } from "./components/PickupEdit";
 import {
   storageEntries,
@@ -123,16 +124,14 @@ export function App() {
           <PokemonList onSelectPokemon={ setPokemon } />
         ) }
       </div>
-      <div className="column" style={{ flexGrow: 0, width: "640px" }}>
+      <div className="column" style={{ flexGrow: 0, width: "760px" }}>
         <p>
           <button onClick={ () => setRightColumn("speed") }>素早さランキング</button>
-          <button>耐久ランキング</button>
+          <button onClick={ () => setRightColumn("robustness") }>耐久ランキング</button>
+          <button onClick={ () => setRightColumn("pickup") }>ピックアップ管理</button>
         </p>
-        { rightColumn === "speed" && (
-          <SpeedList
-              pokemon={ pokemon }
-              onSwitchPage={ setRightColumn } />
-        ) }
+        { rightColumn === "speed" && <SpeedList pokemon={ pokemon } /> }
+        { rightColumn === "robustness" && <RobustnessList pokemon={ pokemon } /> }
         { rightColumn === "pickup" && <PickupEdit /> }
       </div>
     </div>

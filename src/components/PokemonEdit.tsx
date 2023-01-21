@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from "preact/hooks";
 import { POKEMONS, POKEMON_NAMES } from "../constants/pokemons";
+import { MOVES, MOVE_NAMES } from "../constants/moves";
 import { ATTRIBUTES, ATTRIBUTE_NAMES } from "../constants/attributes";
 import { computeDefaultEffectiveness } from "../utils/effectiveness";
 import { HexChart } from "./HexChart";
@@ -436,7 +437,23 @@ export const PokemonMoveEditRow = ({
 
   const onUpdateName = (e: Event) => {
     const name = (e.target as HTMLInputElement).value;
-    onUpdate({ ...move, name });
+    const template = MOVES[name];
+    if (template) {
+      onUpdate({
+        name: name,
+        attribute: template.attribute,
+        category: template.category,
+        strength: template.strength,
+        bonus: {
+          rank: 1,
+          weather: 1,
+          other: 1,
+        },
+        terastal: false,
+      });
+    } else {
+      onUpdate({ ...move, name });
+    }
   };
 
   const onUpdateAttr = (e: Event) => {
@@ -483,19 +500,21 @@ export const PokemonMoveEditRow = ({
   const totalBonus = attrBonus * rankBonus * bonus.weather * bonus.other;
   const value = Math.floor(status * strength * totalBonus);
 
-  return (
+  return <>
+    <datalist id="move-names">
+      { MOVE_NAMES.map((name) => <option key={ name } value={ name } />) }
+    </datalist>
     <tr>
       <td>
         { index + 1 }
       </td>
       <td>
-        <input type="text" value={ name } onInput={ onUpdateName } />
+        <input list="move-names" value={ name } onInput={ onUpdateName } />
       </td>
       <td>
         <select value={ attribute } onInput={ onUpdateAttr }>
           { ATTRIBUTE_NAMES.map((name) => <option value={ name }>{ name }</option>) }
         </select>
-        &nbsp;x{ attrBonus }
       </td>
       <td>
         <select value={ category } onInput={ onUpdateCategory }>
@@ -538,6 +557,7 @@ export const PokemonMoveEditRow = ({
       </td>
       <td>
         <input type="checkbox" checked={ terastal } onInput={ onUpdateTerastal } />
+        &nbsp;x{ attrBonus }
       </td>
       <td>
         { value }
@@ -546,7 +566,7 @@ export const PokemonMoveEditRow = ({
         <button onClick={ onDelete }>削除</button>
       </td>
     </tr>
-  );
+  </>;
 };
 
 export const PokemonMoveEdit = ({

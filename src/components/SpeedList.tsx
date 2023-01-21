@@ -73,7 +73,7 @@ const Cell = ({ pokemon, value }: {
   ) : pokemon.computedWithBonus.s < value ? (
     "#0000ff30"
   ) : (
-    "#00ff0030"
+    "inherit"
   );
   return (
     <td style={{ background: color }}>

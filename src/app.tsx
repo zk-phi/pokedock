@@ -126,8 +126,8 @@ export function App() {
       </div>
       <div className="column" style={{ flexGrow: 0, width: "760px" }}>
         <p>
-          <button onClick={ () => setRightColumn("speed") }>素早さランキング</button>
-          <button onClick={ () => setRightColumn("robustness") }>耐久ランキング</button>
+          <button onClick={ () => setRightColumn("speed") }>素早さ調整ツール</button>
+          <button onClick={ () => setRightColumn("robustness") }>火力調整/ダメ計ツール</button>
           <button onClick={ () => setRightColumn("pickup") }>ピックアップ管理</button>
         </p>
         { rightColumn === "speed" && <SpeedList pokemon={ pokemon } /> }

@@ -495,6 +495,7 @@ export const PokemonMoveEditRow = ({
         <select value={ attribute } onInput={ onUpdateAttr }>
           { ATTRIBUTE_NAMES.map((name) => <option value={ name }>{ name }</option>) }
         </select>
+        &nbsp;x{ attrBonus }
       </td>
       <td>
         <select value={ category } onInput={ onUpdateCategory }>

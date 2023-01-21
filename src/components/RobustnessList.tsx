@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks'
+import { useState, useEffect } from 'preact/hooks'
 import { computed } from '@preact/signals';
 import { POKEMONS, POKEMON_NAMES } from "../constants/pokemons";
 import { optimizePokemon } from "../utils/optimizer";
@@ -12,13 +12,15 @@ type RobustnessRow = {
   n: NValues,
   hb: number,
   hd: number,
-  moveName: string,
-  effectiveness: number,
-  minDamageRatio: number,
-  maxDamageRatio: number,
-  minCount: number,
-  percentile: number,
-  gradient: string,
+  hbd: number,
+  damage?: {
+    move: Move,
+    effectiveness: number,
+    minRatio: number,
+    maxRatio: number,
+    minCount: number,
+    percentile: number,
+  },
 };
 
 type FilterFn = (row: RobustnessRow) => boolean;
@@ -34,11 +36,21 @@ const FILTER_NAMES = [
 
 const FILTERS: Record<string, FilterFn> = {
   "すべて": (row: RobustnessRow) => true,
-  "無効以外": (row: RobustnessRow) => row.effectiveness > 0,
-  "半減以下": (row: RobustnessRow) => row.effectiveness <= 0.5 && row.effectiveness > 0,
-  "等倍": (row: RobustnessRow) => row.effectiveness === 1,
-  "等倍以上": (row: RobustnessRow) => row.effectiveness >= 1,
-  "抜群以上": (row: RobustnessRow) => row.effectiveness >= 2,
+  "無効以外": (row: RobustnessRow) => (
+    !!row.damage && row.damage.effectiveness > 0
+  ),
+  "半減以下": (row: RobustnessRow) => (
+    !!row.damage && row.damage.effectiveness <= 0.5 && row.damage.effectiveness > 0
+  ),
+  "等倍": (row: RobustnessRow) => (
+    !!row.damage && row.damage.effectiveness === 1
+  ),
+  "等倍以上": (row: RobustnessRow) => (
+    !!row.damage && row.damage.effectiveness >= 1
+  ),
+  "抜群以上": (row: RobustnessRow) => (
+    !!row.damage && row.damage.effectiveness >= 2
+  ),
 };
 
 const ROBUSTNESSES = computed(() => (
@@ -105,11 +117,10 @@ const evaluateMove = (atk: Pokemon, move: Move, def: Pokemon): RobustnessRow => 
     tag,
     optimized: { ev, n },
     computed: defComputed,
-    computedWithBonus: { hb, hd },
+    computedWithBonus: { hb, hd, evenHBD: hbd },
     effectiveness: defEffectiveness,
   } = def;
   const {
-    name: moveName,
     attribute,
     category,
     strength,
@@ -135,22 +146,12 @@ const evaluateMove = (atk: Pokemon, move: Move, def: Pokemon): RobustnessRow => 
   const minDamage = f(r(minPow * attrBonus) * effectiveness);
   const maxDamageWithBonus = r(r(maxDamage * attackBonus) * other);
   const minDamageWithBonus = r(r(minDamage * attackBonus) * other);
-  const maxDamageRatio = maxDamageWithBonus / def.computedWithBonus.h;
-  const minDamageRatio = minDamageWithBonus / def.computedWithBonus.h;
-  const minCount = c(1 / maxDamageRatio);
+  const maxRatio = maxDamageWithBonus / def.computedWithBonus.h;
+  const minRatio = minDamageWithBonus / def.computedWithBonus.h;
+  const minCount = c(1 / maxRatio);
 
   const percentile = f(
-    (maxDamageRatio - 1 / minCount) / (maxDamageRatio - minDamageRatio) * 100
-  );
-
-  const gradient = (
-    "linear-gradient(to right, " +
-    "#ff000060 0%, " +
-    "#ff000060 " + (minDamageRatio * 100) + "%, " +
-    "#ff000030 " + (minDamageRatio * 100) + "%, " +
-    "#ff000030 " + (maxDamageRatio * 100) + "%, " +
-    "transparent " + (maxDamageRatio * 100) + "%" +
-    ")"
+    (maxRatio - 1 / minCount) / (maxRatio - minRatio) * 100
   );
 
   return {
@@ -160,13 +161,15 @@ const evaluateMove = (atk: Pokemon, move: Move, def: Pokemon): RobustnessRow => 
     n,
     hb,
     hd,
-    moveName,
-    effectiveness,
-    minDamageRatio,
-    maxDamageRatio,
-    minCount,
-    percentile,
-    gradient,
+    hbd,
+    damage: {
+      move,
+      effectiveness,
+      minRatio,
+      maxRatio,
+      minCount,
+      percentile,
+    },
   };
 };
 
@@ -174,31 +177,118 @@ const evaluate = (atk: Pokemon, moves: Move[], def: Pokemon): RobustnessRow => (
   moves.map((move) => (
     evaluateMove(atk, move, def)
   )).reduce((l, r) => (
-    l.minDamageRatio < r.minDamageRatio ? r : l
+    l.damage!.minRatio < r.damage!.minRatio ? r : l
   ))
 );
+
+const noEvaluate = ({
+  name,
+  tag,
+  optimized: { ev, n },
+  computed: defComputed,
+  computedWithBonus: { hb, hd, evenHBD: hbd },
+  effectiveness: defEffectiveness,
+}: Pokemon): RobustnessRow => ({
+  name,
+  tag,
+  ev,
+  n,
+  hb,
+  hd,
+  hbd,
+});
+
+const gradient = (minRatio: number, maxRatio: number, color: string) => (
+  "linear-gradient(to right, " +
+  color + "60 0%, " +
+  color + "60 " + (minRatio * 100) + "%, " +
+  color + "30 " + (minRatio * 100) + "%, " +
+  color + "30 " + (maxRatio * 100) + "%, " +
+  "transparent " + (maxRatio * 100) + "%" +
+  ")"
+);
+
+const Row = ({ row, valueKey }: {
+  row: RobustnessRow,
+  valueKey: "hbd" | "hb" | "hd",
+}) => {
+  const sameAttr = row.damage && (
+    valueKey === "hb" && row.damage.move.category === "物理"
+    || valueKey === "hd" && row.damage.move.category === "特殊"
+  );
+  const bg = !row.damage ? undefined : gradient(
+    row.damage.minRatio,
+    row.damage.maxRatio,
+    sameAttr ? "#ff0000" : "#555555",
+  );
+  return <tr>
+    <td>
+      { row.name } <small>{ row.tag }</small><br />
+      <small>
+        H{ row.ev.h } -
+        B{ row.ev.b }{ row.n.b > 1 ? "↑" : row.n.b < 1 ? "↓" : "" } -
+        D{ row.ev.d }{ row.n.d > 1 ? "↑" : row.n.d < 1 ? "↓" : "" }
+      </small>
+    </td>
+    <td style={{ backgroundImage: bg }}>
+      { f(row[valueKey] / 0.44)  }<br />
+  { row.damage && (
+    <small>
+      { f(row.damage.minRatio * 100) }〜{ f(row.damage.maxRatio * 100) }%
+      / { row.damage.minCount }
+      発({ row.damage.percentile >= 100 ? "確定" : `${row.damage.percentile}%` })
+      @{ row.damage.move.name }(x{ row.damage.effectiveness })
+    </small>
+  )}
+    </td>
+  </tr>;
+};
 
 export const RobustnessList = ({ pokemon }: {
   pokemon?: Pokemon | null,
 }) => {
-  const filteredMoves = pokemon ? pokemon.moves.filter((move) => move.category !== "変化") : [];
-  if (!pokemon || filteredMoves.length === 0) return null;
-
-  const category = pokemon.computedWithBonus.a > pokemon.computedWithBonus.c ? "物理" : "特殊";
   const [filter, setFilter] = useState(FILTER_NAMES[0]);
-
-  const rows = ROBUSTNESSES.value.map((def) => evaluate(pokemon, filteredMoves, def));
-  const list = rows.filter(FILTERS[filter]).sort((a, b) => (
-    category === "物理" ? b.hb - a.hb : b.hd - a.hd
-  ));
-
   const onSelectFilter = (e: Event) => {
     const value = (e.target as HTMLSelectElement).value;
     setFilter(value);
   };
 
+  const [category, setCategory] = useState("総合");
+  useEffect(() => {
+    if (!pokemon) {
+      setCategory("総合");
+    } else if (pokemon.computedWithBonus.a > pokemon.computedWithBonus.c) {
+      setCategory("物理");
+    } else {
+      setCategory("特殊");
+    }
+  }, [pokemon]);
+  const onSelectCategory = (e: Event) => {
+    const value = (e.target as HTMLSelectElement).value as "hbd" | "hb" | "hd";
+    setCategory(value);
+  };
+  const valueKey: "hbd" | "hb" | "hd" = (
+    category === "総合" ? "hbd" : category === "物理" ? "hb" : "hd"
+  );
+
+  const filteredMoves = pokemon ? pokemon.moves.filter((move) => move.category !== "変化") : [];
+  const rows = !pokemon || filteredMoves.length === 0 ? (
+    ROBUSTNESSES.value.map(noEvaluate)
+  ) : (
+    ROBUSTNESSES.value.map((def) => evaluate(pokemon, filteredMoves, def))
+  );
+  const list = rows.filter(FILTERS[filter]).sort((a, b) => b[valueKey] - a[valueKey]);
+
   return <>
-    <h2>耐久ランキング</h2>
+    <h2>火力調整/ダメ計ツール</h2>
+    <p>
+      並べ替え：
+      <select value={ category } onInput={ onSelectCategory }>
+        <option value="総合">総合耐久</option>
+        <option value="物理">物理耐久</option>
+        <option value="特殊">特殊耐久</option>
+      </select>
+    </p>
     <p>
       フィルタ：
       <select value={ filter } onInput={ onSelectFilter }>
@@ -210,26 +300,7 @@ export const RobustnessList = ({ pokemon }: {
         <td>ポケモン</td>
         <td>{ category }耐久</td>
       </tr>
-      { list.map((row) => (
-        <tr>
-          <td>
-            { row.name } <small>{ row.tag }</small><br />
-            <small>
-              H{ row.ev.h } -
-              B{ row.ev.b }{ row.n.b > 1 ? "↑" : row.n.b < 1 ? "↓" : "" } -
-              D{ row.ev.d }{ row.n.d > 1 ? "↑" : row.n.d < 1 ? "↓" : "" }
-            </small>
-          </td>
-          <td style={{ backgroundImage: row.gradient }}>
-            { category === "物理" ? f(row.hb / 0.44) : f(row.hd / 0.44) }<br />
-          <small>
-            { f(row.minDamageRatio * 100) }〜{ f(row.maxDamageRatio * 100) }%
-            / { row.minCount }発({ row.percentile >= 100 ? "確定" : `${row.percentile}%` })
-            @{ row.moveName }(x{ row.effectiveness })
-          </small>
-          </td>
-        </tr>
-      )) }
+      { list.map((row) => <Row row={ row } valueKey={ valueKey } />) }
     </table>
   </>;
 };

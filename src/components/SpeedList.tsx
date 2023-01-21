@@ -94,7 +94,7 @@ export const SpeedList = ({ pokemon }: {
   };
 
   return <>
-    <h2>素早さランキング</h2>
+    <h2>素早さ調整ツール</h2>
     { pokemon && (
       <p>{ pokemon.name }が抜かれているポケモンは青で表示されます。</p>
     ) }

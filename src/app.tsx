@@ -30,6 +30,7 @@ const placeholder: Pokemon = optimizePokemon({
   optimizationStrategy: "hbd",
   bdBalance: 0.5,
   moves: [{
+    enabled: true,
     name: "じゃれつく",
     attribute: "フェアリー",
     category: "物理",
@@ -37,6 +38,7 @@ const placeholder: Pokemon = optimizePokemon({
     bonus: { rank: 0, weather: 1, other: 1 },
     terastal: false,
   }, {
+    enabled: false,
     name: "ドレインパンチ",
     attribute: "かくとう",
     category: "物理",
@@ -44,6 +46,7 @@ const placeholder: Pokemon = optimizePokemon({
     bonus: { rank: 0, weather: 1, other: 1 },
     terastal: false,
   }, {
+    enabled: true,
     name: "かげうち",
     attribute: "ゴースト",
     category: "物理",
@@ -51,6 +54,7 @@ const placeholder: Pokemon = optimizePokemon({
     bonus: { rank: 0, weather: 1, other: 1 },
     terastal: false,
   }, {
+    enabled: true,
     name: "シャドークロー",
     attribute: "ゴースト",
     category: "物理",
@@ -58,6 +62,7 @@ const placeholder: Pokemon = optimizePokemon({
     bonus: { rank: 0, weather: 1, other: 1 },
     terastal: false,
   }, {
+    enabled: true,
     name: "つるぎのまい",
     attribute: "ノーマル",
     category: "変化",

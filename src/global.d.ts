@@ -63,6 +63,7 @@ type NValues = {
 };
 
 type Move = {
+  enabled?: boolean,
   name: string,
   attribute: Attribute,
   category: Category,

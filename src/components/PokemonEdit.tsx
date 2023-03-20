@@ -38,6 +38,7 @@ type MoveEditRowProps = {
 };
 
 const sampleMove: Move = {
+  enabled: true,
   name: "たいあたり",
   attribute: "ノーマル",
   category: "物理",
@@ -247,6 +248,39 @@ export const PokemonTypeEdit = ({
   </>;
 };
 
+export const PokemonTypeTable = ({
+  pokemon,
+}: { pokemon: Pokemon }) => {
+  const { attributes, teraAttribute, effectiveness, teraEffectiveness } = pokemon;
+
+  return <>
+    <p>
+      <table>
+        <tr>
+          <td></td>
+          { ATTRIBUTE_NAMES.map((name) => <td key={ name }>{ ATTRIBUTES[name].abbrev }</td>) }
+        </tr>
+        <tr>
+          <td>通常</td>
+          { ATTRIBUTE_NAMES.map((name) => (
+            <td key={ name } style={{ backgroundColor: color[effectiveness[name]] }}>
+              { effectiveness[name] }
+            </td>
+          )) }
+        </tr>
+        <tr>
+          <td>テラス</td>
+          { ATTRIBUTE_NAMES.map((name) => (
+            <td key={ name } style={{ backgroundColor: color[teraEffectiveness[name]] }}>
+              { teraEffectiveness[name] }
+            </td>
+          )) }
+        </tr>
+      </table>
+    </p>
+  </>;
+};
+
 const PokemonStatsEdit = ({
   pokemon,
   onUpdate,
@@ -426,6 +460,7 @@ export const PokemonMoveEditRow = ({
   } = pokemon;
 
   const {
+    enabled,
     name,
     attribute,
     category,
@@ -439,6 +474,7 @@ export const PokemonMoveEditRow = ({
     const template = MOVES[name];
     if (template) {
       onUpdate({
+        enabled: true,
         name: name,
         attribute: template.attribute,
         category: template.category,
@@ -484,6 +520,11 @@ export const PokemonMoveEditRow = ({
     onUpdate({ ...move, terastal });
   };
 
+  const onUpdateEnabled = (e: Event) => {
+    const enabled = (e.target as HTMLInputElement).checked;
+    onUpdate({ ...move, enabled });
+  };
+
   const attrBonus = attributes.includes(attribute) ? (
     terastal && teraAttribute === attribute ? 2 : 1.5
   ) : (
@@ -504,6 +545,9 @@ export const PokemonMoveEditRow = ({
       { MOVE_NAMES.map((name) => <option key={ name } value={ name } />) }
     </datalist>
     <tr>
+      <td>
+        <input type="checkbox" checked={ enabled == null || enabled } onInput={ onUpdateEnabled } />
+      </td>
       <td>
         <input list="move-names" value={ name } onInput={ onUpdateName } />
       </td>
@@ -593,6 +637,7 @@ export const PokemonMoveEdit = ({
   return <>
     <table>
       <tr>
+        <td></td>
         <td>技名</td>
         <td>タイプ</td>
         <td>分類</td>
@@ -626,12 +671,13 @@ export const PokemonEdit = ({
   pokemon,
   onUpdate,
 }: Props) => {
-  /* 受け側の耐久調整機能を実装するタイミングで PokemonTypeEdit も追加する */
+  /* 受け側の耐久調整機能を実装するタイミングで PokemonTypeEdit に入れ替える */
   return (
     <div>
       <section>
         <h2>基本スペック</h2>
         <PokemonNameEdit pokemon={ pokemon } onUpdate={ onUpdate } />
+        <PokemonTypeTable pokemon={ pokemon } />
       </section>
       <section>
         <h2>努力値調整</h2>

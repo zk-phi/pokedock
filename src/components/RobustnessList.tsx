@@ -213,7 +213,8 @@ const Row = ({ row, valueKey }: {
   valueKey: "hbd" | "hb" | "hd",
 }) => {
   const sameAttr = row.damage && (
-    valueKey === "hb" && row.damage.move.category === "物理"
+    valueKey === "hbd"
+    || valueKey === "hb" && row.damage.move.category === "物理"
     || valueKey === "hd" && row.damage.move.category === "特殊"
   );
   const bg = !row.damage ? undefined : gradient(
@@ -271,7 +272,10 @@ export const RobustnessList = ({ pokemon }: {
     category === "総合" ? "hbd" : category === "物理" ? "hb" : "hd"
   );
 
-  const filteredMoves = pokemon ? pokemon.moves.filter((move) => move.category !== "変化") : [];
+  const filteredMoves = pokemon ? pokemon.moves.filter((move) => (
+    /* enabled は後から追加されたプロパティなので undef も true として扱いたい */
+    (move.enabled == null || move.enabled) && move.category !== "変化"
+  )) : [];
   const rows = !pokemon || filteredMoves.length === 0 ? (
     ROBUSTNESSES.value.map(noEvaluate)
   ) : (
@@ -282,7 +286,7 @@ export const RobustnessList = ({ pokemon }: {
   return <>
     <h2>火力調整/ダメ計ツール</h2>
     <p>
-      並べ替え：
+      比較対象：
       <select value={ category } onInput={ onSelectCategory }>
         <option value="総合">総合耐久</option>
         <option value="物理">物理耐久</option>

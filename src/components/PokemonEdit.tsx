@@ -147,20 +147,20 @@ export const PokemonNameEdit = ({
           <td>{ computedWithBonus.s }</td>
         </tr>
         <tr>
-          <td>物理耐久 <small>HB/0.44</small></td>
+          <td>物理耐久値 <small>HB/0.44</small></td>
           <td>{ Math.floor(computedWithBonus.hb / 0.44) }</td>
         </tr>
         <tr>
-          <td>特殊耐久 <small>HD/0.44</small></td>
+          <td>特殊耐久値 <small>HD/0.44</small></td>
           <td>{ Math.floor(computedWithBonus.hd / 0.44) }</td>
         </tr>
         <tr>
-          <td>総合耐久 <small>HBD/(B+D)/0.22</small></td>
+          <td>総合耐久値 <small>HBD/(B+D)/0.22</small></td>
           <td>{ Math.floor(computedWithBonus.evenHBD / 0.44) }</td>
         </tr>
       </table>
-      <small>※ 青三角が正三角形のとき効率的な耐久指数 (H=B+D∧B=D) になります</small><br />
-      <small>※ "耐久"は最大乱数を引かれ続けても耐えられる最大火力です</small>
+      <small>※ 青三角が正三角形のとき、無駄のない耐久指数 (H=B+D∧B=D) になります</small><br />
+      <small>※ "耐久値"は攻撃側に最高乱数を引かれ続けても耐えられる最大火力です</small>
     </p>
   </>;
 };
@@ -241,7 +241,8 @@ export const PokemonTypeEdit = ({
           )) }
         </tr>
       </table>
-      <button onClick={ onReset }>リセット</button>
+      <small>※ 特性で無効になるタイプなどがあれば編集してください</small><br />
+      <button onClick={ onReset }>タイプ本来の相性に戻す</button>
     </p>
   </>;
 };
@@ -314,6 +315,29 @@ const PokemonStatsEdit = ({
         value={ level }
         onInput={ onChangeLevel } />
     { level }
+    <p>
+      残りの努力値を自動で振る：
+      <select value={ optimizationStrategy } onInput={ (e) => onInputStrategy(e) }>
+        <option value="hbd">総合耐久 (HBD)</option>
+        <option value="h">HP</option>
+        <option value="a">攻撃</option>
+        <option value="c">特攻</option>
+        <option value="s">素早</option>
+        <option value="">振らない</option>
+      </select>
+      { optimizationStrategy === "hbd" && <>
+        &nbsp;
+        物理寄り
+        <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            value={ bdBalance }
+            onInput={ (e) => onInputBalance(e) } />
+        { Math.floor(bdBalance * 100) }% 特殊寄り
+      </> }
+    </p>
     <table>
       <tr>
         <td></td>
@@ -324,7 +348,7 @@ const PokemonStatsEdit = ({
           <small>(残り{ 508 - (ev.h + ev.a + ev.b + ev.c + ev.d + ev.s) })</small>
         </td>
         <td>性格補正</td>
-        <td>道具・特性等</td>
+        <td>その他補正</td>
         <td>実数値</td>
       </tr>
       { STAT_FIELDS.map((field) => (
@@ -385,30 +409,7 @@ const PokemonStatsEdit = ({
           </td>
         </tr>
       )) }
-      </table>
-      <p>
-        努力値の残りを自動で振る：
-        <select value={ optimizationStrategy } onInput={ (e) => onInputStrategy(e) }>
-          <option value="hbd">耐久 (HBD)</option>
-          <option value="h">HP</option>
-          <option value="a">攻撃</option>
-          <option value="c">特攻</option>
-          <option value="s">素早</option>
-          <option value="">振らない</option>
-        </select>
-        { optimizationStrategy === "hbd" && <>
-          &nbsp;
-          物理寄り
-          <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              value={ bdBalance }
-              onInput={ (e) => onInputBalance(e) } />
-          { Math.floor(bdBalance * 100) }% 特殊寄り
-        </> }
-      </p>
+    </table>
   </>;
 };
 
@@ -616,6 +617,8 @@ export const PokemonMoveEdit = ({
         </td>
       </tr>
     </table>
+    <small>※ 登録すると右画面の「火力調整/ダメ計ツール」でダメージ量を確認できます</small><br />
+    <small>※ ヘビーボンバーなど特殊な技の威力は今のところ手動です</small>
   </>;
 };
 
@@ -623,19 +626,19 @@ export const PokemonEdit = ({
   pokemon,
   onUpdate,
 }: Props) => {
+  /* 受け側の耐久調整機能を実装するタイミングで PokemonTypeEdit も追加する */
   return (
     <div>
       <section>
         <h2>基本スペック</h2>
         <PokemonNameEdit pokemon={ pokemon } onUpdate={ onUpdate } />
-        <PokemonTypeEdit pokemon={ pokemon } onUpdate={ onUpdate } />
       </section>
       <section>
         <h2>努力値調整</h2>
         <PokemonStatsEdit pokemon={ pokemon } onUpdate={ onUpdate } />
       </section>
       <section>
-        <h2>火力確認</h2>
+        <h2>攻撃技</h2>
         <PokemonMoveEdit pokemon={ pokemon } onUpdate={ onUpdate } />
       </section>
     </div>

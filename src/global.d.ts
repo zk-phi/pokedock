@@ -73,6 +73,7 @@ type Move = {
     other: number,
   },
   terastal: boolean,
+  // effectiveness?: Effectiveness,
 };
 
 type PokemonSettings = {

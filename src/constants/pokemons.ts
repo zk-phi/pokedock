@@ -285,4 +285,20 @@ export const DEFAULT_PICKUP: Record<string, boolean> = {
   "ヘイラッシャ": true,
   "セグレイブ": true,
   "サーフゴー": true,
+  /* "イダイナキバ": true, */
+  /* "サケブシッポ": true, */
+  "アラブルタケ": true,
+  "ハバタクカミ": true,
+  "チヲハウハネ": true,
+  "テツノツツミ": true,
+  "テツノカイナ": true,
+  /* "テツノドクガ": true, */
+  /* "チオンジェン": true, */
+  /* "パオジアン": true, */
+  /* "ディンルー": true, */
+  /* "イーユイ": true, */
+  "トドロクツキ": true,
+  "テツノブジン": true,
+  /* "コライドン": true, */
+  /* "ミライドン": true, */
 };

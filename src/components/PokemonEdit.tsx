@@ -538,7 +538,6 @@ export const PokemonMoveEditRow = ({
     1 / (1 - bonus.rank / 2)
   );
   const totalBonus = attrBonus * rankBonus * bonus.weather * bonus.other;
-  const value = Math.floor(status * strength * totalBonus);
 
   return <>
     <datalist id="move-names">
@@ -596,11 +595,18 @@ export const PokemonMoveEditRow = ({
               onInput={ onUpdateBonus("other") } />
       </td>
       <td>
-        <input type="checkbox" checked={ terastal } onInput={ onUpdateTerastal } />
+        <input
+            type="checkbox"
+            disabled={ teraAttribute !== attribute }
+            checked={ terastal }
+            onInput={ onUpdateTerastal } />
         &nbsp;x{ attrBonus }
       </td>
       <td>
-        { value }
+        { Math.floor(strength * totalBonus) }
+      </td>
+      <td>
+        { Math.floor(status * strength * totalBonus) }
       </td>
       <td>
         <button onClick={ onDelete }>削除</button>
@@ -646,7 +652,8 @@ export const PokemonMoveEdit = ({
         <td>天候</td>
         <td>その他補正</td>
         <td>テラス</td>
-        <td>参考火力</td>
+        <td>実質威力</td>
+        <td>火力</td>
         <td></td>
       </tr>
       { (pokemon.moves ?? []).map((move, ix) => (

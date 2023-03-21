@@ -480,7 +480,7 @@ export const PokemonMoveEditRow = ({
         category: template.category,
         strength: template.strength,
         bonus: {
-          rank: 1,
+          rank: 0,
           weather: 1,
           other: 1,
         },

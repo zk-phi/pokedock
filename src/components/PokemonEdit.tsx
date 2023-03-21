@@ -44,7 +44,7 @@ const sampleMove: Move = {
   category: "物理",
   strength: 40,
   bonus: {
-    rank: 1,
+    rank: 0,
     weather: 1,
     other: 1,
   },
@@ -603,10 +603,7 @@ export const PokemonMoveEditRow = ({
         &nbsp;x{ attrBonus }
       </td>
       <td>
-        { Math.floor(strength * totalBonus) }
-      </td>
-      <td>
-        { Math.floor(status * strength * totalBonus) }
+        { Math.floor(strength * totalBonus) } ({ Math.floor(status * strength * totalBonus) })
       </td>
       <td>
         <button onClick={ onDelete }>削除</button>
@@ -652,8 +649,7 @@ export const PokemonMoveEdit = ({
         <td>天候</td>
         <td>その他補正</td>
         <td>テラス</td>
-        <td>実質威力</td>
-        <td>火力</td>
+        <td>実質威力 (火力)</td>
         <td></td>
       </tr>
       { (pokemon.moves ?? []).map((move, ix) => (

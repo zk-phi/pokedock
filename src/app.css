@@ -3,6 +3,11 @@
   box-sizing: border-box;
 }
 
+h2 {
+  background: linear-gradient(transparent 50%, #ea08 50%);
+  margin-bottom: 16px;
+}
+
 p, ul {
   margin: 16px 0;
 }

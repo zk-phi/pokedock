@@ -90,7 +90,7 @@ const PokemonList = ({ onSelectPokemon }: {
         </li>
       )) }
     </ul>
-    <button onClick={ () => onSelectPokemon(placeholder) }>新規育成</button>
+    <button onClick={ () => onSelectPokemon(placeholder) }>さいしょから はじめる</button>
   </>;
 };
 

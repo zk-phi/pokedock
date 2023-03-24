@@ -347,11 +347,16 @@ const PokemonStatsEdit = ({
     if (nFields.length !== 1) return null;
 
     const nField = nFields[0];
-    const maxStatField = nAvailableFields.reduce((l, r) => computed[l] > computed[r] ? l : r);
-    if (nField === maxStatField) return null;
+    const maxField = nAvailableFields.reduce((l, r) => computed[l] > computed[r] ? l : r);
+    if (nField === maxField) return null;
+
+    /* 努力値を 0 にしても性格補正だけで目標値オーバーしちゃう */
+    if (Math.floor((baseStats[maxField] + 20) * 1.1) > computed[maxField]) return null;
+
+    /* 努力値を 252 振っても性格補正にかなわない */
     if (baseStats[nField] + 52 < computed[nField]) return null;
 
-    return maxStatField;
+    return maxField;
   }, [pokemon]);
 
   return <>
@@ -460,7 +465,7 @@ const PokemonStatsEdit = ({
       )) }
     </table>
     { betterNField && (
-      <small>！正確補正を{ fieldName[betterNField] }に移動した方が効率的です</small>
+      <small>！性格補正を{ fieldName[betterNField] }にかけた方が効率的かも</small>
     ) }
   </>;
 };

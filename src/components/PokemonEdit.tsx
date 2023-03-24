@@ -342,11 +342,11 @@ const PokemonStatsEdit = ({
   }, [pokemon, level]);
 
   const betterNField = useMemo(() => {
-    const nAvailableFields: ValueFieldIndex[] = ["a", "b", "c", "d", "s"];
+    const nAvailableFields: NFieldIndex[] = ["a", "b", "c", "d", "s"];
     const nFields = nAvailableFields.filter((f) => optimized.n[f] > 1);
     if (nFields.length !== 1) return null;
 
-    const nField = nFields.length === 1 && nFields[0];
+    const nField = nFields[0];
     const maxStatField = nAvailableFields.reduce((l, r) => computed[l] > computed[r] ? l : r);
     if (nField === maxStatField) return null;
     if (baseStats[nField] + 52 < computed[nField]) return null;

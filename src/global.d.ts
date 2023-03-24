@@ -1,6 +1,7 @@
 type NValue = 1 | 1.1 | 0.9;
 type OptimizationStrategy = "h" | "a" | "c" | "s" | "hbd" | "";
 type ValueFieldIndex = "h" | "a" | "b" | "c" | "d" | "s";
+type NFieldIndex = "a" | "b" | "c" | "d" | "s";
 
 type Attribute =
   "ノーマル" |

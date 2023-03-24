@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks'
+import { useState, useCallback } from 'preact/hooks'
 import { PokemonEdit } from "./components/PokemonEdit";
 import { SpeedList } from "./components/SpeedList";
 import { RobustnessList } from "./components/RobustnessList";
@@ -77,6 +77,13 @@ const PokemonList = ({ onSelectPokemon }: {
 }) => {
   const entries = storageEntries.value;
   const timestamps = entries.map((entry) => (new Date(entry.timestamp)).toLocaleString());
+
+  const onDelete = useCallback((i: number) => {
+    if (confirm("本当に削除しますか？")) {
+      deleteStorageItem(i);
+    }
+  }, []);
+
   return <>
     <ul>
       { entries.map((entry, i) => (
@@ -84,7 +91,7 @@ const PokemonList = ({ onSelectPokemon }: {
           <button onClick={ () => onSelectPokemon(entries[i].pokemon) }>
             { entry.pokemon.name } { entry.pokemon.tag } (ver. { timestamps[i] })
           </button>
-          <button onClick={ () => deleteStorageItem(i) }>
+          <button onClick={ () => onDelete(i) }>
             削除
           </button>
         </li>

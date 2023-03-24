@@ -16,6 +16,8 @@ const color: Record<number, string> = {
   "4": "#0000ff60",
 };
 
+const fields: ValueFieldIndex[] = ["h", "a", "b", "c", "d", "s"];
+
 const fieldName = {
   h: "HP",
   a: "攻撃",
@@ -24,15 +26,6 @@ const fieldName = {
   d: "特防",
   s: "素早",
 };
-
-const STAT_FIELDS: { index: ValueFieldIndex, label: string }[] = [
-  { index: "h", label: "HP" },
-  { index: "a", label: "攻撃" },
-  { index: "b", label: "防御" },
-  { index: "c", label: "特攻" },
-  { index: "d", label: "特防" },
-  { index: "s", label: "素早" },
-];
 
 type Props = {
   pokemon: Pokemon,
@@ -407,39 +400,39 @@ const PokemonStatsEdit = ({
         <td>その他補正</td>
         <td>実数値</td>
       </tr>
-      { STAT_FIELDS.map((field) => (
-        <tr key={ field.label }>
-          <td>{ field.label }</td>
-          <td>{ baseStats[field.index] }</td>
+      { fields.map((field) => (
+        <tr key={ field }>
+          <td>{ fieldName[field] }</td>
+          <td>{ baseStats[field] }</td>
           <td>
-            <select value={ iv[field.index] } onInput={ (e) => onInputStat(e, "iv", field.index) }>
+            <select value={ iv[field] } onInput={ (e) => onInputStat(e, "iv", field) }>
               <option value="31">31</option>
               <option value="0">0</option>
             </select>
           </td>
           <td>
-            { optimizationStrategy && optimizationStrategy.match(field.index) ? (
-              optimized.ev[field.index]
+            { optimizationStrategy && optimizationStrategy.match(field) ? (
+              optimized.ev[field]
             ) : <>
               <input
                   type="range"
-                  value={ ev[field.index] }
+                  value={ ev[field] }
                   min="0"
                   max="252"
                   step="4"
-                  onInput={ (e) => onInputStat(e, "ev", field.index) } />
-              { ev[field.index] }
+                  onInput={ (e) => onInputStat(e, "ev", field) } />
+              { ev[field] }
             </> }
           </td>
           <td>
-            { field.index === "h" ? (
+            { field === "h" ? (
               "-"
-            ) : optimizationStrategy && optimizationStrategy.match(field.index) ? (
-              optimized.n[field.index]
+            ) : optimizationStrategy && optimizationStrategy.match(field) ? (
+              optimized.n[field]
             ) : <>
               <select
-                  value={ n[field.index] }
-                  onInput={ (e) => onInputStat(e, "n", field.index) }>
+                  value={ n[field] }
+                  onInput={ (e) => onInputStat(e, "n", field) }>
                 <option value="1">1.0</option>
                 <option value="1.1">1.1</option>
                 <option value="0.9">0.9</option>
@@ -450,18 +443,18 @@ const PokemonStatsEdit = ({
             x&nbsp;
             <input
                 type="number"
-                value={ bonus[field.index] }
+                value={ bonus[field] }
                 min="0"
                 max="9.9"
                 step="0.1"
-                onInput={ (e) => onInputStat(e, "bonus", field.index) } />
+                onInput={ (e) => onInputStat(e, "bonus", field) } />
           </td>
           <td>
-            { computed[field.index] }
-            { field.index === "h" && (
+            { computed[field] }
+            { field === "h" && (
               <small>{ computed.h % 16 === 15 ? " 16n-1" : ` 16n+${computed.h % 16}` }</small>
             ) }
-            { bonus[field.index] !== 1 && <span> ({ computedWithBonus[field.index] })</span> }
+            { bonus[field] !== 1 && <span> ({ computedWithBonus[field] })</span> }
           </td>
         </tr>
       )) }

@@ -16,6 +16,15 @@ const color: Record<number, string> = {
   "4": "#0000ff60",
 };
 
+const fieldName = {
+  h: "HP",
+  a: "攻撃",
+  b: "防御",
+  c: "特攻",
+  d: "特防",
+  s: "素早",
+};
+
 const STAT_FIELDS: { index: ValueFieldIndex, label: string }[] = [
   { index: "h", label: "HP" },
   { index: "a", label: "攻撃" },
@@ -339,6 +348,19 @@ const PokemonStatsEdit = ({
     }
   }, [pokemon, level]);
 
+  const betterNField = useMemo(() => {
+    const nAvailableFields: ValueFieldIndex[] = ["a", "b", "c", "d", "s"];
+    const nFields = nAvailableFields.filter((f) => optimized.n[f] > 1);
+    if (nFields.length !== 1) return null;
+
+    const nField = nFields.length === 1 && nFields[0];
+    const maxStatField = nAvailableFields.reduce((l, r) => computed[l] > computed[r] ? l : r);
+    if (nField === maxStatField) return null;
+    if (baseStats[nField] + 52 < computed[nField]) return null;
+
+    return maxStatField;
+  }, [pokemon]);
+
   return <>
     Lv：
     <input
@@ -444,6 +466,9 @@ const PokemonStatsEdit = ({
         </tr>
       )) }
     </table>
+    { betterNField && (
+      <small>！正確補正を{ fieldName[betterNField] }に移動した方が効率的です</small>
+    ) }
   </>;
 };
 

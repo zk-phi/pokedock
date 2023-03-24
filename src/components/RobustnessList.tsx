@@ -263,7 +263,7 @@ export const RobustnessList = ({ pokemon }: {
     } else {
       setCategory("特殊");
     }
-  }, [pokemon]);
+  }, []);
   const onSelectCategory = (e: Event) => {
     const value = (e.target as HTMLSelectElement).value as "hbd" | "hb" | "hd";
     setCategory(value);

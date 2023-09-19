@@ -2,6 +2,7 @@ import { useState, useCallback } from 'preact/hooks'
 import { PokemonEdit } from "./components/PokemonEdit";
 import { SpeedList } from "./components/SpeedList";
 import { RobustnessList } from "./components/RobustnessList";
+import { EffectiveValueList } from "./components/EffectiveValueList";
 import { PickupEdit } from "./components/PickupEdit";
 import {
   storageEntries,
@@ -140,10 +141,12 @@ export function App() {
         <p>
           <button onClick={ () => setRightColumn("speed") }>素早さ調整ツール</button>
           <button onClick={ () => setRightColumn("robustness") }>火力調整/ダメ計ツール</button>
+          <button onClick={ () => setRightColumn("value") }>有効種族値ランキング</button>
           <button onClick={ () => setRightColumn("pickup") }>ピックアップ管理</button>
         </p>
         { rightColumn === "speed" && <SpeedList pokemon={ pokemon } /> }
         { rightColumn === "robustness" && <RobustnessList pokemon={ pokemon } /> }
+        { rightColumn === "value" && <EffectiveValueList /> }
         { rightColumn === "pickup" && <PickupEdit /> }
       </div>
     </div>
